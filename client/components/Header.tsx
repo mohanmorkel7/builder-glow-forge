@@ -18,7 +18,10 @@ export function Header() {
 
   return (
     <header className="relative bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
-      <nav className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8" aria-label="Global">
+      <nav
+        className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8"
+        aria-label="Global"
+      >
         <div className="flex lg:flex-1">
           <Link to="/" className="-m-1.5 p-1.5 flex items-center space-x-2">
             <div className="relative">
@@ -30,7 +33,7 @@ export function Header() {
             </span>
           </Link>
         </div>
-        
+
         <div className="flex lg:hidden">
           <Button
             variant="ghost"
@@ -42,7 +45,7 @@ export function Header() {
             <Menu className="h-6 w-6" aria-hidden="true" />
           </Button>
         </div>
-        
+
         <div className="hidden lg:flex lg:gap-x-12">
           {navigation.map((item) => (
             <Link
@@ -52,24 +55,27 @@ export function Header() {
                 "text-sm font-semibold leading-6 transition-colors hover:text-primary",
                 location.pathname === item.href
                   ? "text-primary"
-                  : "text-muted-foreground"
+                  : "text-muted-foreground",
               )}
             >
               {item.name}
             </Link>
           ))}
         </div>
-        
+
         <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-x-4">
           <Button variant="ghost" size="sm">
             Sign in
           </Button>
-          <Button size="sm" className="bg-gradient-to-r from-primary to-wellness-600 hover:from-primary/90 hover:to-wellness-600/90">
+          <Button
+            size="sm"
+            className="bg-gradient-to-r from-primary to-wellness-600 hover:from-primary/90 hover:to-wellness-600/90"
+          >
             Book Session
           </Button>
         </div>
       </nav>
-      
+
       {/* Mobile menu */}
       {mobileMenuOpen && (
         <div className="lg:hidden">
@@ -107,7 +113,7 @@ export function Header() {
                         "-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 transition-colors hover:bg-muted",
                         location.pathname === item.href
                           ? "text-primary bg-muted"
-                          : "text-foreground"
+                          : "text-foreground",
                       )}
                     >
                       {item.name}

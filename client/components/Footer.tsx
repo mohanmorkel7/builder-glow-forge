@@ -63,8 +63,9 @@ export function Footer() {
               </span>
             </Link>
             <p className="text-sm leading-6 text-muted-foreground max-w-md">
-              Transform your well-being with our holistic wellness sanctuary. Experience the perfect blend of 
-              relaxation, rejuvenation, and mindful healing in our serene oasis.
+              Transform your well-being with our holistic wellness sanctuary.
+              Experience the perfect blend of relaxation, rejuvenation, and
+              mindful healing in our serene oasis.
             </p>
             <div className="flex space-x-6">
               {navigation.social.map((item) => (
@@ -82,7 +83,9 @@ export function Footer() {
           <div className="mt-16 grid grid-cols-2 gap-8 xl:col-span-2 xl:mt-0">
             <div className="md:grid md:grid-cols-2 md:gap-8">
               <div>
-                <h3 className="text-sm font-semibold leading-6 text-foreground">Navigate</h3>
+                <h3 className="text-sm font-semibold leading-6 text-foreground">
+                  Navigate
+                </h3>
                 <ul role="list" className="mt-6 space-y-4">
                   {navigation.main.map((item) => (
                     <li key={item.name}>
@@ -97,7 +100,9 @@ export function Footer() {
                 </ul>
               </div>
               <div className="mt-10 md:mt-0">
-                <h3 className="text-sm font-semibold leading-6 text-foreground">Services</h3>
+                <h3 className="text-sm font-semibold leading-6 text-foreground">
+                  Services
+                </h3>
                 <ul role="list" className="mt-6 space-y-4">
                   {navigation.services.map((item) => (
                     <li key={item.name}>
@@ -114,7 +119,9 @@ export function Footer() {
             </div>
             <div className="md:grid md:grid-cols-2 md:gap-8">
               <div>
-                <h3 className="text-sm font-semibold leading-6 text-foreground">Support</h3>
+                <h3 className="text-sm font-semibold leading-6 text-foreground">
+                  Support
+                </h3>
                 <ul role="list" className="mt-6 space-y-4">
                   {navigation.support.map((item) => (
                     <li key={item.name}>
@@ -129,9 +136,12 @@ export function Footer() {
                 </ul>
               </div>
               <div className="mt-10 md:mt-0">
-                <h3 className="text-sm font-semibold leading-6 text-foreground">Newsletter</h3>
+                <h3 className="text-sm font-semibold leading-6 text-foreground">
+                  Newsletter
+                </h3>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Subscribe to our newsletter for wellness tips and exclusive offers.
+                  Subscribe to our newsletter for wellness tips and exclusive
+                  offers.
                 </p>
                 <form className="mt-4 flex max-w-md gap-x-4">
                   <label htmlFor="email-address" className="sr-only">
@@ -159,7 +169,8 @@ export function Footer() {
         </div>
         <div className="mt-16 border-t border-border pt-8 sm:mt-20 lg:mt-24">
           <p className="text-xs leading-5 text-muted-foreground text-center">
-            &copy; 2024 Aura Oasis. All rights reserved. | Designed for your wellness journey.
+            &copy; 2024 Aura Oasis. All rights reserved. | Designed for your
+            wellness journey.
           </p>
         </div>
       </div>
