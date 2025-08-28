@@ -3,18 +3,20 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Sparkles, 
-  Leaf, 
-  Heart, 
-  Brain, 
-  Zap, 
-  ArrowRight, 
+import {
+  Sparkles,
+  Leaf,
+  Heart,
+  Brain,
+  Zap,
+  ArrowRight,
   Star,
   Clock,
   Users,
   Award,
-  CheckCircle
+  CheckCircle,
+  Calendar,
+  Phone
 } from "lucide-react";
 
 const features = [
