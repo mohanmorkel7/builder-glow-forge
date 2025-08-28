@@ -1,0 +1,8 @@
+Timestamp,Action,Entity,Client,User,Details,Status
+"2025-08-04 12:18:40","subtask status changed","MASTER AND VISA FILE VALIDATION","ABC Corporation","John Durairaj","Subtask status changed from 'in_progress' to 'completed'","completed"
+"2025-08-04 12:03:40","delay reported","SHARING OF THE FILE TO M2P","ABC Corporation","John Durairaj","Subtask marked as delayed due to external dependency","delayed"
+"2025-08-04 10:48:40","sla alert","VISA - VALIDATION OF THE BASE 2 FILE","ABC Corporation","System","SLA warning - Task will breach SLA in 15 minutes","in_progress"
+"2025-08-04 09:48:40","task created","CLEARING - FILE TRANSFER AND VALIDATION","ABC Corporation","Admin User","New FinOps task created with 5 subtasks","N/A"
+"2025-08-04 08:48:40","task assigned","DATA RECONCILIATION PROCESS","XYZ Industries","Admin User","Task reassigned to Sarah Wilson","N/A"
+"2025-08-04 06:48:40","subtask status changed","RBL DUMP VS TCP DATA (DAILY ALERT MAIL)","ABC Corporation","John Durairaj","Subtask started - status changed from 'pending' to 'in_progress'","in_progress"
+"2025-08-03 12:48:40","task updated","CLIENT REPORTING AND PRESENTATION","LMN Enterprises","Admin User","Task configuration updated - reporting managers added","N/A"

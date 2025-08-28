@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Database Status - CRM System</title>
+    <style>
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+      h1 {
+        color: #333;
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .status-card {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+        border-left: 4px solid #007bff;
+      }
+      .status-connected {
+        border-left-color: #28a745;
+        background: #d4edda;
+      }
+      .status-disconnected {
+        border-left-color: #dc3545;
+        background: #f8d7da;
+      }
+      .endpoint-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+      }
+      .endpoint-card {
+        padding: 15px;
+        border-radius: 6px;
+        border: 1px solid #dee2e6;
+      }
+      .endpoint-database {
+        background: #d4edda;
+        border-color: #28a745;
+      }
+      .endpoint-mock {
+        background: #fff3cd;
+        border-color: #ffc107;
+      }
+      .endpoint-unavailable {
+        background: #f8d7da;
+        border-color: #dc3545;
+      }
+      .recommendations {
+        background: #e7f3ff;
+        border: 1px solid #0066cc;
+        border-radius: 6px;
+        padding: 15px;
+        margin: 20px 0;
+      }
+      .recommendations ul {
+        margin: 10px 0;
+        padding-left: 20px;
+      }
+      .button {
+        background: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      .button:hover {
+        background: #0056b3;
+      }
+      .loading {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+      }
+      .error {
+        background: #f8d7da;
+        border: 1px solid #dc3545;
+        color: #721c24;
+        padding: 15px;
+        border-radius: 6px;
+        margin: 20px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🗄️ Database Status Dashboard</h1>
+
+      <div id="loading" class="loading">
+        <h3>Loading database status...</h3>
+      </div>
+
+      <div id="content" style="display: none">
+        <div id="connectionStatus" class="status-card">
+          <!-- Status will be loaded here -->
+        </div>
+
+        <h2>📡 Endpoint Status</h2>
+        <div id="endpointStatus" class="endpoint-grid">
+          <!-- Endpoints will be loaded here -->
+        </div>
+
+        <h2>💡 Recommendations</h2>
+        <div id="recommendations" class="recommendations">
+          <!-- Recommendations will be loaded here -->
+        </div>
+
+        <h2>🔧 Database Actions</h2>
+        <div>
+          <button class="button" onclick="testConnection()">
+            Test Connection
+          </button>
+          <button class="button" onclick="reconnect()">Force Reconnect</button>
+          <button class="button" onclick="refresh()">Refresh Status</button>
+        </div>
+
+        <div id="actionResult"></div>
+      </div>
+    </div>
+
+    <script>
+      async function loadStatus() {
+        try {
+          const response = await fetch("/api/database/status");
+          const data = await response.json();
+
+          document.getElementById("loading").style.display = "none";
+          document.getElementById("content").style.display = "block";
+
+          // Connection Status
+          const statusDiv = document.getElementById("connectionStatus");
+          const isConnected = data.database.connected;
+          statusDiv.className = `status-card ${isConnected ? "status-connected" : "status-disconnected"}`;
+          statusDiv.innerHTML = `
+                    <h3>${isConnected ? "✅ Database Connected" : "❌ Database Disconnected"}</h3>
+                    <p><strong>Host:</strong> ${data.database.host}:${data.database.port}</p>
+                    <p><strong>Database:</strong> ${data.database.database}</p>
+                    <p><strong>User:</strong> ${data.database.user}</p>
+                    <p><strong>Status:</strong> ${isConnected ? "All endpoints using real-time database data" : "Endpoints using mock data fallback"}</p>
+                `;
+
+          // Endpoints Status
+          const endpointsDiv = document.getElementById("endpointStatus");
+          const endpoints = data.endpoints.availableRoutes;
+          endpointsDiv.innerHTML = Object.entries(endpoints)
+            .map(([route, status]) => {
+              const statusClass =
+                status === "DATABASE"
+                  ? "endpoint-database"
+                  : status === "MOCK"
+                    ? "endpoint-mock"
+                    : "endpoint-unavailable";
+              const statusIcon =
+                status === "DATABASE" ? "✅" : status === "MOCK" ? "⚠️" : "🔴";
+              return `
+                        <div class="endpoint-card ${statusClass}">
+                            <strong>${statusIcon} ${route}</strong>
+                            <br>
+                            <small>Status: ${status}</small>
+                        </div>
+                    `;
+            })
+            .join("");
+
+          // Recommendations
+          const recommendationsDiv = document.getElementById("recommendations");
+          recommendationsDiv.innerHTML = `
+                    <ul>
+                        ${data.recommendations.map((rec) => `<li>${rec}</li>`).join("")}
+                    </ul>
+                `;
+        } catch (error) {
+          document.getElementById("loading").style.display = "none";
+          document.getElementById("content").innerHTML = `
+                    <div class="error">
+                        <h3>❌ Failed to load database status</h3>
+                        <p>Error: ${error.message}</p>
+                        <button class="button" onclick="window.location.reload()">Retry</button>
+                    </div>
+                `;
+        }
+      }
+
+      async function testConnection() {
+        const resultDiv = document.getElementById("actionResult");
+        resultDiv.innerHTML =
+          '<div class="loading">Testing connection...</div>';
+
+        try {
+          const response = await fetch("/api/database/test", {
+            method: "POST",
+          });
+          const data = await response.json();
+
+          resultDiv.innerHTML = `
+                    <div class="status-card ${data.success ? "status-connected" : "status-disconnected"}">
+                        <h4>${data.success ? "✅ Connection Test Successful" : "❌ Connection Test Failed"}</h4>
+                        <p>${data.message}</p>
+                        ${data.serverTime ? `<p><strong>Server Time:</strong> ${data.serverTime}</p>` : ""}
+                        ${data.troubleshooting ? `<ul>${data.troubleshooting.map((tip) => `<li>${tip}</li>`).join("")}</ul>` : ""}
+                    </div>
+                `;
+        } catch (error) {
+          resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Test Failed</h4>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+        }
+      }
+
+      async function reconnect() {
+        const resultDiv = document.getElementById("actionResult");
+        resultDiv.innerHTML =
+          '<div class="loading">Attempting reconnection...</div>';
+
+        try {
+          const response = await fetch("/api/database/reconnect", {
+            method: "POST",
+          });
+          const data = await response.json();
+
+          resultDiv.innerHTML = `
+                    <div class="status-card ${data.success ? "status-connected" : "status-disconnected"}">
+                        <h4>${data.success ? "✅ Reconnection Successful" : "❌ Reconnection Failed"}</h4>
+                        <p>${data.message}</p>
+                        <p>${data.status}</p>
+                    </div>
+                `;
+
+          if (data.success) {
+            setTimeout(() => window.location.reload(), 2000);
+          }
+        } catch (error) {
+          resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Reconnection Failed</h4>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+        }
+      }
+
+      function refresh() {
+        window.location.reload();
+      }
+
+      // Load status on page load
+      loadStatus();
+
+      // Auto-refresh every 30 seconds
+      setInterval(loadStatus, 30000);
+    </script>
+  </body>
+</html>

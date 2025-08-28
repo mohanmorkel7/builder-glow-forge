@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script type="module">import { injectIntoGlobalHook } from "/@react-refresh";
+injectIntoGlobalHook(window);
+window.$RefreshReg$ = () => {};
+window.$RefreshSig$ = () => (type) => type;</script>
+
+    <script type="module" src="/@vite/client"></script>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Banani App - Business Management Platform</title>
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <script type="module" src="/client/main.tsx"></script>
+  </body>
+</html>
+<script>
+              // Check if we're in an iframe
+              const isInIframe = window !== window.parent;
+              
+              // Check if we're running in Electron
+              const isElectron = !isInIframe && 
+                typeof window !== 'undefined' && 
+                typeof window.process === 'object' && 
+                window.process.type === 'renderer' &&
+                typeof require !== 'undefined';
+              
+              let ipcRenderer = null;
+              if (isElectron) {
+                try {
+                  const electron = require('electron');
+                  ipcRenderer = electron.ipcRenderer;
+                } catch (e) {
+                  console.warn('Failed to load Electron ipcRenderer:', e);
+                }
+              }
+
+              // Helper function to send messages
+              function sendMessage(message) {
+                if (isInIframe) {
+                  // Prioritize iframe communication
+                  window.parent.postMessage(message, '*');
+                } else if (ipcRenderer) {
+                  // Use Electron IPC if not in iframe
+                  ipcRenderer.sendToHost(message.type, message.data);
+                } else {
+                  // Final fallback
+                  console.warn('No parent context available for messaging');
+                }
+              }
+
+              // Message listener
+              const messageHandler = (event) => {
+                const { data } = event;
+                if (!data?.type) {
+                  return;
+                }
+
+                switch (data.type) {
+                  case 'builder.evaluate': {
+                    const text = data.data.text;
+                    const args = data.data.arguments || [];
+                    const id = data.data.id;
+                    // tslint:disable-next-line:no-function-constructor-with-string-args
+                    const fn = new Function(text);
+                    let result;
+                    let error = null;
+                    try {
+                      // eslint-disable-next-line prefer-spread
+                      result = fn.apply(null, args);
+                    } catch (err) {
+                      error = err;
+                    }
+
+                    if (error) {
+                      sendMessage({
+                        type: 'builder.evaluateError',
+                        data: { id, error: error.message },
+                      });
+                    } else {
+                      if (result && typeof result.then === 'function') {
+                        result
+                          .then((finalResult) => {
+                            sendMessage({
+                              type: 'builder.evaluateResult',
+                              data: { id, result: finalResult },
+                            });
+                          })
+                          .catch(console.error);
+                      } else {
+                        sendMessage({
+                          type: 'builder.evaluateResult',
+                          data: { result, id },
+                        });
+                      }
+                    }
+                    break;
+                  }
+                }
+              };
+
+              // Set up message listeners
+              if (isInIframe) {
+                // Use standard postMessage for iframes
+                window.addEventListener('message', messageHandler);
+              } else if (ipcRenderer) {
+                // Listen for IPC messages from the host in Electron
+                ipcRenderer.on('message', (event, data) => {
+                  messageHandler({ data });
+                });
+              } else {
+                // Final fallback
+                window.addEventListener('message', messageHandler);
+              }
+
+              window.addEventListener('error', (event) => {
+                sendMessage({
+                  type: 'builder.interactiveFrameError',
+                  data: { message: event.error?.stack || event.error?.message || event.message },
+                });
+              });
+              
+              setTimeout(() => {
+                const viteError = document.querySelector('vite-error-overlay')?.shadowRoot?.textContent;
+                if (typeof viteError === 'string') {
+                  sendMessage({
+                    type: 'builder.interactiveFrameError',
+                    data: { message: viteError },
+                  });
+                }
+              }, 500);
+
+            </script>

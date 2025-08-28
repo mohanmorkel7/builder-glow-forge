@@ -1,0 +1,7 @@
+This is a sample document for testing file download functionality.
+
+It contains some text content to verify that the file download works correctly 
+and doesn't download index.html instead.
+
+File created: 2025-01-31
+Purpose: Testing download functionality in the team chat

@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>File Upload Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .test-section {
+        margin: 20px 0;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+      }
+      .status {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+      }
+      .success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      .info {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+      }
+      button {
+        padding: 10px 20px;
+        margin: 5px;
+        cursor: pointer;
+      }
+      input[type="file"] {
+        margin: 10px 0;
+      }
+      pre {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🧪 Real-Time File Upload Test</h1>
+
+    <div class="test-section">
+      <h2>1. Upload Test</h2>
+      <input type="file" id="fileInput" multiple accept="*/*" />
+      <button onclick="testUpload()">Upload Files</button>
+      <div id="uploadStatus"></div>
+      <pre id="uploadResult"></pre>
+    </div>
+
+    <div class="test-section">
+      <h2>2. Directory Check</h2>
+      <button onclick="checkUploadsDirectory()">Check Uploads Directory</button>
+      <div id="directoryStatus"></div>
+      <pre id="directoryResult"></pre>
+    </div>
+
+    <div class="test-section">
+      <h2>3. Download Test</h2>
+      <input
+        type="text"
+        id="downloadFilename"
+        placeholder="Enter filename to download"
+      />
+      <button onclick="testDownload()">Download File</button>
+      <div id="downloadStatus"></div>
+    </div>
+
+    <script>
+      function updateStatus(elementId, message, type = "info") {
+        const element = document.getElementById(elementId);
+        element.innerHTML = `<div class="status ${type}">${message}</div>`;
+      }
+
+      function updateResult(elementId, data) {
+        const element = document.getElementById(elementId);
+        element.textContent = JSON.stringify(data, null, 2);
+      }
+
+      async function testUpload() {
+        const fileInput = document.getElementById("fileInput");
+        const files = fileInput.files;
+
+        if (files.length === 0) {
+          updateStatus(
+            "uploadStatus",
+            "❌ Please select files to upload",
+            "error",
+          );
+          return;
+        }
+
+        updateStatus("uploadStatus", "📤 Uploading files...", "info");
+
+        try {
+          const formData = new FormData();
+          for (let i = 0; i < files.length; i++) {
+            formData.append("files", files[i]);
+          }
+
+          const response = await fetch("/api/files/upload", {
+            method: "POST",
+            body: formData,
+          });
+
+          const result = await response.json();
+
+          if (response.ok && result.success) {
+            updateStatus(
+              "uploadStatus",
+              `✅ Successfully uploaded ${result.files.length} file(s)`,
+              "success",
+            );
+            updateResult("uploadResult", result);
+
+            // Auto-populate download test with first uploaded file
+            if (result.files.length > 0) {
+              document.getElementById("downloadFilename").value =
+                result.files[0].filename;
+            }
+          } else {
+            updateStatus(
+              "uploadStatus",
+              `❌ Upload failed: ${result.error || "Unknown error"}`,
+              "error",
+            );
+            updateResult("uploadResult", result);
+          }
+        } catch (error) {
+          updateStatus(
+            "uploadStatus",
+            `💥 Upload error: ${error.message}`,
+            "error",
+          );
+          updateResult("uploadResult", { error: error.message });
+        }
+      }
+
+      async function checkUploadsDirectory() {
+        updateStatus(
+          "directoryStatus",
+          "📁 Checking uploads directory...",
+          "info",
+        );
+
+        try {
+          // Try to list files by getting info for known files
+          const knownFiles = [
+            "client_requirements.txt",
+            "project_proposal_v2.txt",
+            "sample_document.txt",
+          ];
+          const fileInfos = [];
+
+          for (const filename of knownFiles) {
+            try {
+              const response = await fetch(`/api/files/info/${filename}`);
+              if (response.ok) {
+                const info = await response.json();
+                fileInfos.push(info);
+              }
+            } catch (e) {
+              // File doesn't exist, continue
+            }
+          }
+
+          updateStatus(
+            "directoryStatus",
+            `✅ Found ${fileInfos.length} existing files`,
+            "success",
+          );
+          updateResult("directoryResult", {
+            message: "Existing files in uploads directory",
+            files: fileInfos,
+          });
+        } catch (error) {
+          updateStatus(
+            "directoryStatus",
+            `❌ Error checking directory: ${error.message}`,
+            "error",
+          );
+          updateResult("directoryResult", { error: error.message });
+        }
+      }
+
+      async function testDownload() {
+        const filename = document
+          .getElementById("downloadFilename")
+          .value.trim();
+
+        if (!filename) {
+          updateStatus("downloadStatus", "❌ Please enter a filename", "error");
+          return;
+        }
+
+        updateStatus("downloadStatus", `📥 Downloading ${filename}...`, "info");
+
+        try {
+          const response = await fetch(`/api/files/download/${filename}`);
+
+          if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            updateStatus(
+              "downloadStatus",
+              `✅ Successfully downloaded ${filename}`,
+              "success",
+            );
+          } else {
+            const errorData = await response.json();
+            updateStatus(
+              "downloadStatus",
+              `❌ Download failed: ${errorData.error || "Unknown error"}`,
+              "error",
+            );
+          }
+        } catch (error) {
+          updateStatus(
+            "downloadStatus",
+            `💥 Download error: ${error.message}`,
+            "error",
+          );
+        }
+      }
+
+      // Auto-check directory on page load
+      window.addEventListener("load", checkUploadsDirectory);
+    </script>
+  </body>
+</html>

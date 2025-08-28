@@ -1,0 +1,51 @@
+import { useEffect, useState } from 'react';
+import Image from 'next/image';
+import AWS from 'aws-sdk';
+
+const ImageLink = ({ imageName, signedUrl }) => (
+  <a href={signedUrl}>
+    <Image
+      src={signedUrl}
+      alt={imageName}
+      width={500} // Set appropriate width
+      height={300} // Set appropriate height
+    />
+  </a>
+);
+
+export default function Home() {
+  const [signedUrl, setSignedUrl] = useState('');
+  const imageName = 'example.jpg'; // Replace with your image name
+
+  useEffect(() => {
+    // Configure AWS SDK
+    AWS.config.update({
+      region: 'YOUR_REGION',
+      credentials: new AWS.CognitoIdentityCredentials({
+        IdentityPoolId: 'YOUR_IDENTITY_POOL_ID',
+      }),
+    });
+
+    const s3 = new AWS.S3({
+      apiVersion: '2006-03-01',
+      params: { Bucket: 'YOUR_BUCKET_NAME' },
+    });
+
+    // Generate signed URL
+    const params = { Bucket: 'YOUR_BUCKET_NAME', Key: imageName };
+    s3.getSignedUrl('getObject', params, (err, url) => {
+      if (err) {
+        console.log('Error generating signed URL', err);
+      } else {
+        setSignedUrl(url);
+      }
+    });
+  }, [imageName]);
+
+  return (
+    <div>
+      <h1>Image Link Example</h1>
+      {signedUrl && <ImageLink imageName={imageName} signedUrl={signedUrl} />}
+    </div>
+  );
+}
